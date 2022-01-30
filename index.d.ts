@@ -64,7 +64,8 @@ export declare class Node<T> {
 declare class IntervalTree<T = any> {
     constructor()
 
-    root: Node<T>;
+    root: Node<T> | null;
+    protected nil_node: Node<T>;
 
     readonly size: number;
     readonly keys: Node<T>[];
@@ -75,6 +76,8 @@ declare class IntervalTree<T = any> {
     insert(key: Interval | NumericTuple, value?: Value<T>) : Node<T>;
     exist(key: Interval | NumericTuple, value?: Value<T>): boolean;
     remove(key: Interval | NumericTuple, value?: Value<T>) : Node<T>;
+    clear(): void;
+    removeInterval(interval: Interval | NumericTuple, outputMapperFn?: (value: Value<T>, key: Interval) => MappedItem) : SearchOutput<T>;
     search(interval: Interval | NumericTuple, outputMapperFn?: (value: Value<T>, key: Interval) => MappedItem) : SearchOutput<T>;
     intersect_any(interval: Interval | NumericTuple) : boolean;
     forEach(callbackfn: (key: Interval, value: Value<T>) => void, thisArg?: any ) : void;
