@@ -117,6 +117,33 @@ class IntervalTree {
     }
 
     /**
+     * Remove all entries
+     */
+    clear() {
+    this.root = null;
+    }
+
+    /**
+     * Remove entries that intersect with given interval
+     * @param {Interval} interval - remove interval, or tuple [low, high]
+     * @param outputMapperFn(value,key) - optional function that maps (value, key) to custom output
+     * @returns {Array} the removed entries
+     */
+    removeInterval(
+        interval,
+        mapper  = (v, k) => v
+      ) {
+        let search_node = new Node(interval);
+        let resp_nodes = [];
+        this.tree_search_interval(this.root, search_node, resp_nodes);
+    
+        for (let n of resp_nodes) {
+          this.tree_delete(n);
+        }
+        return resp_nodes.map((node) => mapper(node.item.value, node.item.key));
+      }
+
+    /**
      * Returns array of entry values which keys intersect with given interval <br/>
      * If no values stored in the tree, returns array of keys which intersect given interval
      * @param {Interval} interval - search interval, or tuple [low, high]
@@ -320,12 +347,12 @@ class IntervalTree {
                     brother_node = current_node.parent.right;                      // update brother
                 }
                 // Derive to cases 2..4: brother is black
-                if (brother_node.left.color == RB_TREE_COLOR_BLACK &&
+                if (brother_node.left !== null && brother_node.left.color == RB_TREE_COLOR_BLACK &&
                     brother_node.right.color == RB_TREE_COLOR_BLACK) {  // case 2: both nephews black
                     brother_node.color = RB_TREE_COLOR_RED;              // re-color brother
                     current_node = current_node.parent;                  // continue iteration
                 }
-                else {
+                else if (brother_node.right !== null) {
                     if (brother_node.right.color == RB_TREE_COLOR_BLACK) {   // case 3: left nephew red, right nephew black
                         brother_node.color = RB_TREE_COLOR_RED;          // re-color brother
                         brother_node.left.color = RB_TREE_COLOR_BLACK;   // re-color nephew
@@ -339,6 +366,8 @@ class IntervalTree {
                     brother_node.right.color = RB_TREE_COLOR_BLACK;
                     this.rotate_left(current_node.parent);
                     current_node = this.root;                         // exit from loop
+                } else {
+                    current_node = this.root;                         // exit from loop
                 }
             }
             else {                                             // fix node is right child
@@ -350,12 +379,12 @@ class IntervalTree {
                     brother_node = current_node.parent.left;                        // update brother
                 }
                 // Go to cases 2..4
-                if (brother_node.left.color == RB_TREE_COLOR_BLACK &&
+                if (brother_node.left !== null && brother_node.left.color == RB_TREE_COLOR_BLACK &&
                     brother_node.right.color == RB_TREE_COLOR_BLACK) {   // case 2
                     brother_node.color = RB_TREE_COLOR_RED;             // re-color brother
                     current_node = current_node.parent;                              // continue iteration
                 }
-                else {
+                else if (brother_node.left !== null) {
                     if (brother_node.left.color == RB_TREE_COLOR_BLACK) {  // case 3: right nephew red, left nephew black
                         brother_node.color = RB_TREE_COLOR_RED;            // re-color brother
                         brother_node.right.color = RB_TREE_COLOR_BLACK;    // re-color nephew
@@ -368,6 +397,8 @@ class IntervalTree {
                     current_node.parent.color = RB_TREE_COLOR_BLACK;
                     brother_node.left.color = RB_TREE_COLOR_BLACK;
                     this.rotate_right(current_node.parent);
+                    current_node = this.root;                               // force exit from loop
+                } else {
                     current_node = this.root;                               // force exit from loop
                 }
             }
